@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cozy corner</title>
+<style>
+:root{--cream:#faf7f0;--beige:#eee6d8;--green:#9eae98;--dark:#424b40;--pink:#e8d6cf}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--dark);font-family:Arial,sans-serif}
+header{text-align:center;padding:30px 18px 22px;background:var(--beige);border-radius:0 0 30px 30px}
+h1{font-family:Georgia,serif;font-size:36px;font-weight:normal;margin:8px 0}
+header p{margin:8px 0}
+main{max-width:620px;margin:auto;padding:18px}
+.card{background:white;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 4px 18px #5148330b}
+h2{font-family:Georgia,serif;font-size:22px;font-weight:normal;margin-top:0}
+button{border:0;border-radius:14px;background:var(--green);color:white;padding:12px 15px;font-size:15px;cursor:pointer;margin:4px}
+input,textarea,select{width:100%;padding:12px;border:1px solid var(--beige);border-radius:12px;background:#fffdf9;font:inherit;margin:6px 0 12px;color:var(--dark)}
+textarea{min-height:100px;resize:vertical}
+.progress{height:12px;background:var(--beige);border-radius:20px;overflow:hidden}
+#bar{height:100%;width:0;background:var(--green);transition:width .5s}
+.idea{padding:12px;background:var(--cream);border-radius:13px;margin:8px 0;overflow-wrap:anywhere}
+.idea small{display:block;color:#7a8275;margin-top:6px}
+footer{text-align:center;padding:22px;color:#858b7d;font-size:13px}
+.float{position:fixed;pointer-events:none;animation:rise 3s ease-out forwards;font-size:22px;z-index:5}
+@keyframes rise{0%{opacity:0;transform:translateY(0) rotate(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-180px) rotate(35deg)}}
+</style>
+</head>
+<body>
+<header>
+<div style="font-size:28px">☁️ 🌿 ☁️</div>
+<h1>cozy corner</h1>
+<p>Dein kleiner Ort für große Ideen ♡</p>
+</header>
+<main>
+<section class="card">
+<h2>☀️ Hallo, Kreativmaus!</h2>
+<p>Du musst nicht perfekt sein. Fang einfach mit einer kleinen Idee an.</p>
+<p>Deine Kreativpunkte: <strong id="points">0</strong> ✨</p>
+<div class="progress"><div id="bar"></div></div>
+<p id="level">Dein nächstes Ziel: 5 Punkte</p>
+<button onclick="celebrate()">✨ Gute-Laune-Moment</button>
+</section>
+<section class="card">
+<h2>📝 Mein Ideen-Tagebuch</h2>
+<label for="title">Name deiner Idee</label>
+<input id="title" placeholder="z. B. ein gemütliches Nähprojekt">
+<label for="note">Deine Gedanken</label>
+<textarea id="note" placeholder="Schreib deine Idee hier auf ..."></textarea>
+<label for="mood">Meine Stimmung</label>
+<select id="mood"><option>🌿 Ruhig</option><option>🎨 Kreativ</option><option>☁️ Verträumt</option><option>🌷 Glücklich</option></select>
+<button onclick="saveIdea()">Idee speichern ♡</button>
+<p id="message" aria-live="polite"></p>
+</section>
+<section class="card">
+<h2>🌼 Meine gesammelten Ideen</h2>
+<div id="ideas"><p>Noch keine Ideen. Deine erste wartet schon auf dich!</p></div>
+</section>
+<section class="card">
+<h2>🎧 Cozy Sounds</h2>
+<p>Ein sanfter Klang zum Durchatmen. Tippe zum Ein- oder Ausschalten.</p>
+<button id="music" onclick="toggleMusic()">♫ Musik einschalten</button>
+<p style="font-size:12px">Die Musik wird direkt auf deinem Gerät erzeugt.</p>
+</section>
+<section class="card">
+<h2>🌱 Meine kleinen Ziele</h2>
+<label><input style="width:auto" type="checkbox" class="goal" onchange="goalsChanged(this)"> Eine neue Idee aufschreiben</label><br>
+<label><input style="width:auto" type="checkbox" class="goal" onchange="goalsChanged(this)"> Etwas Kreatives ausprobieren</label><br>
+<label><input style="width:auto" type="checkbox" class="goal" onchange="goalsChanged(this)"> Mir Zeit für mich nehmen</label>
+<p id="goalStatus">0 von 3 Zielen geschafft</p>
+</section>
+</main>
+<footer>Mit Liebe gestaltet · cozy corner ♡</footer>
+<script>
+const $=id=>document.getElementById(id);
+let points=Number(localStorage.getItem('cozyPoints')||0);
+let ideas=[];
+try{ideas=JSON.parse(localStorage.getItem('cozyIdeas')||'[]')}catch(e){ideas=[]}
+let done=[];
+try{done=JSON.parse(localStorage.getItem('cozyGoals')||'[false,false,false]')}catch(e){done=[false,false,false]}
+let audio=null,osc=null,gain=null,musicOn=false;
+function renderPoints(){
+$('points').textContent=points;
+$('bar').style.width=(points%5)*20+'%';
+$('level').textContent='Noch '+(5-points%5)+' Punkte bis zum nächsten Ziel ✨';
+localStorage.setItem('cozyPoints',points);
+}
+function renderIdeas(){
+$('ideas').innerHTML='';
+if(!ideas.length){$('ideas').innerHTML='<p>Noch keine Ideen. Deine erste wartet schon auf dich!</p>';return}
+ideas.slice().reverse().forEach((x,i)=>{
+const d=document.createElement('div');d.className='idea';
+const strong=document.createElement('strong');strong.textContent=x.title;
+const p=document.createElement('p');p.textContent=x.note;
+const small=document.createElement('small');small.textContent=x.mood;
+const b=document.createElement('button');b.textContent='Entfernen';b.onclick=()=>{ideas.splice(ideas.length-1-i,1);localStorage.setItem('cozyIdeas',JSON.stringify(ideas));renderIdeas()};
+d.append(strong,p,small,b);$('ideas').append(d);
+});
+}
+function saveIdea(){
+const title=$('title').value.trim(),note=$('note').value.trim();
+if(!title&&!note){$('message').textContent='Schreib erst eine kleine Idee hinein 🤍';return}
+ideas.push({title:title||'Meine Idee',note,mood:$('mood').value});
+localStorage.setItem('cozyIdeas',JSON.stringify(ideas));
+points++;renderPoints();renderIdeas();celebrate();
+$('title').value='';$('note').value='';
+$('message').textContent='Gespeichert! Du hast einen Kreativpunkt bekommen. 🌷';
+}
+function celebrate(){
+['✿','♡','✧','🌿','✨'].forEach((s,i)=>{const e=document.createElement('span');e.className='float';e.textContent=s;e.style.left=(15+Math.random()*70)+'%';e.style.top=(45+Math.random()*30)+'%';e.style.animationDelay=(i*.12)+'s';document.body.append(e);setTimeout(()=>e.remove(),3500)});
+}
+function goalsChanged(el){
+const boxes=[...document.querySelectorAll('.goal')];
+done=boxes.map(b=>b.checked);
+localStorage.setItem('cozyGoals',JSON.stringify(done));
+$('goalStatus').textContent=done.filter(Boolean).length+' von 3 Zielen geschafft';
+}
+function toggleMusic(){
+if(!musicOn){
+try{
+audio=new (window.AudioContext||window.webkitAudioContext)();
+osc=audio.createOscillator();gain=audio.createGain();
+osc.type='sine';osc.frequency.value=261.63;gain.gain.value=.025;
+osc.connect(gain);gain.connect(audio.destination);osc.start();
+musicOn=true;$('music').textContent='♫ Musik ausschalten';
+}catch(e){$('message').textContent='Dein Browser unterstützt die Klänge gerade nicht.'}
+}else{
+if(osc){osc.stop();osc.disconnect();osc=null}
+if(audio){audio.close();audio=null}
+musicOn=false;$('music').textContent='♫ Musik einschalten';
+}
+}
+document.querySelectorAll('.goal').forEach((b,i)=>b.checked=!!done[i]);
+$('goalStatus').textContent=done.filter(Boolean).length+' von 3 Zielen geschafft';
+renderPoints();renderIdeas();
+</script>
+</body>
+</html>
