@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Sunny Valley 🌼</title>
+
+<style>
+
+*{box-sizing:border-box}
+
+body{margin:0;background:#f3e9dc;color:#304b3a;font-family:system-ui,sans-serif}
+
+header{text-align:center;background:#304b3a;color:white;padding:20px}
+
+header h1{font-family:Georgia,serif;margin:0;font-size:32px}
+
+header p{margin:5px}
+
+nav{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;padding:12px}
+
+button{cursor:pointer;font:inherit;border:0;border-radius:12px;padding:10px;background:#dfe8d6;color:#304b3a}
+
+button:active{transform:scale(.96)}
+
+nav button.active{background:#304b3a;color:white}
+
+main{max-width:800px;margin:auto;padding:12px}
+
+.card{background:#fffdf7;border:1px solid #e7ddc9;border-radius:18px;padding:16px;margin-bottom:12px}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+
+.stat{background:#f5ead9;padding:12px 4px;border-radius:12px}
+
+.stat strong{display:block;font-size:20px}
+
+h2{font-family:Georgia,serif}
+
+#world{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;background:#9fbd8b;padding:5px;border-radius:14px}
+
+.tile{aspect-ratio:1;display:grid;place-items:center;background:#c4dba9;border-radius:5px;font-size:clamp(17px,5vw,30px);padding:0}
+
+.tile.path{background:#e7d5a9}
+
+.tile.water{background:#8fcbd0}
+
+.tile.tree{background:#80a875}
+
+.tile.me{background:#f5d8bc;outline:2px solid white}
+
+.controls{display:grid;grid-template-columns:repeat(3,55px);gap:6px;justify-content:center;margin:14px}
+
+.controls button{height:45px;font-size:20px}
+
+.controls .up{grid-column:2}
+
+.controls .left{grid-column:1;grid-row:2}
+
+.controls .down{grid-column:2;grid-row:2}
+
+.controls .right{grid-column:3;grid-row:2}
+
+#message{background:#f7e4d3;border-radius:12px;padding:13px;min-height:48px}
+
+.page{display:none}
+
+.page.active{display:block}
+
+.item{padding:12px;background:#f8f0e4;border-radius:12px;margin:8px 0}
+
+.item button{margin-top:8px}
+
+input,textarea{width:100%;padding:12px;border:1px solid #d8d1c1;border-radius:10px;margin:5px 0;font:inherit}
+
+#photos{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+
+#photos img{width:100%;border-radius:12px}
+
+.small{font-size:13px;color:#718071}
+
+footer{text-align:center;padding:20px;color:#718071;font-size:12px}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>🌼 Sunny Valley</h1>
+
+<p>Dein kleines Abenteuer ♡</p>
+
+</header>
+
+<nav>
+
+<button class="active" data-page="game">🌲 Welt</button>
+
+<button data-page="quests">📜 Aufgaben</button>
+
+<button data-page="bag">🎒 Sammlung</button>
+
+<button data-page="diary">📖 Tagebuch</button>
+
+<button data-page="gallery">🖼️ Galerie</button>
+
+</nav>
+
+<main>
+
+<div class="card stats">
+
+<div class="stat">🌼 Blüten<strong id="flowers">0</strong></div>
+
+<div class="stat">🪙 Münzen<strong id="coins">0</strong></div>
+
+<div class="stat">⭐ Level<strong id="level">1</strong></div>
+
+</div>
+
+<section class="page active" id="game">
+
+<div class="card">
+
+<h2>🌿 Waldlichtung</h2>
+
+<p class="small">Bewege deine Figur und entdecke die geheime Welt!</p>
+
+<div id="world"></div>
+
+<div class="controls">
+
+<button class="up" data-dir="up">▲</button>
+
+<button class="left" data-dir="left">◀</button>
+
+<button class="down" data-dir="down">▼</button>
+
+<button class="right" data-dir="right">▶</button>
+
+</div>
+
+<div id="message">Willkommen in Sunny Valley! Sammle Schätze. 🌷</div>
+
+<p>Erfahrung: <strong id="xp">0 / 50</strong> XP</p>
+
+</div>
+
+</section>
+
+<section class="page" id="quests">
+
+<div class="card">
+
+<h2>📜 Deine Aufgaben</h2>
+
+<div id="questList"></div>
+
+</div>
+
+</section>
+
+<section class="page" id="bag">
+
+<div class="card">
+
+<h2>🎒 Deine Sammlung</h2>
+
+<div id="inventory"></div>
+
+<h2>🏆 Erfolge</h2>
+
+<div id="achievements"></div>
+
+</div>
+
+</section>
+
+<section class="page" id="diary">
+
+<div class="card">
+
+<h2>📖 Dein Tagebuch</h2>
+
+<p>Halte deine Abenteuer fest.</p>
+
+<form id="diaryForm">
+
+<input id="entryTitle" placeholder="Titel deiner Erinnerung" required>
+
+<textarea id="entryText" placeholder="Was hast du erlebt?" rows="4" required></textarea>
+
+<button type="submit">Eintrag speichern ✨</button>
+
+</form>
+
+<div id="entries"></div>
+
+</div>
+
+</section>
+
+<section class="page" id="gallery">
+
+<div class="card">
+
+<h2>🖼️ Deine Galerie</h2>
+
+<p>Füge deine Lieblingsbilder hinzu.</p>
+
+<input type="file" id="photoInput" accept="image/*" multiple>
+
+<div id="photos"></div>
+
+</div>
+
+</section>
+
+<div class="card">
+
+<h2>💾 Dein Spielstand</h2>
+
+<p class="small">Dein Fortschritt wird auf diesem Gerät gespeichert.</p>
+
+<button id="reset">Neues Abenteuer beginnen</button>
+
+</div>
+
+</main>
+
+<footer>Made with 🌿 and a little bit of magic</footer>
+
+<script>
+
+const $=id=>document.getElementById(id);
+
+const fresh=()=>({
+
+x:4,y:4,flowers:0,coins:0,xp:0,level:1,
+
+mushrooms:0,crystals:0,fish:0,keys:0,
+
+steps:0,found:[],claimed:[],entries:[],photos:[]
+
+});
+
+let S;
+
+try{
+
+S=JSON.parse(localStorage.getItem("sunnyValleySave"))||fresh();
+
+}catch(e){S=fresh()}
+
+function save(){
+
+localStorage.setItem("sunnyValleySave",JSON.stringify(S));
+
+}
+
+const W=9,H=9;
+
+const trees=new Set([
+
+"0,0","1,0","2,0","6,0","7,0","8,0",
+
+"0,1","8,1","0,2","2,2","8,2",
+
+"0,3","4,3","8,3","0,6","8,6",
+
+"0,7","3,7","8,7","0,8","1,8","7,8","8,8"
+
+]);
+
+const water=new Set([
+
+"5,0","5,1","5,2","5,3","6,3",
+
+"6,4","6,5","7,6","6,7","5,8"
+
+]);
+
+const paths=new Set([
+
+"4,0","4,1","4,2","3,3","4,3","3,4",
+
+"4,4","4,5","4,6","5,6","5,7","2,6",
+
+"3,6","2,5","1,6","2,7","6,6","7,7"
+
+]);
+
+const things={
+
+"2,1":["🌼","flower"],
+
+"3,1":["🍄","mushroom"],
+
+"7,1":["🪙","coin"],
+
+"1,2":["🌼","flower"],
+
+"3,2":["💎","crystal"],
+
+"7,2":["🌼","flower"],
+
+"1,3":["🪙","coin"],
+
+"2,3":["🌼","flower"],
+
+"6,1":["🧰","chest"],
+
+"2,4":["🍄","mushroom"],
+
+"7,4":["🐟","fish"],
+
+"1,7":["🌼","flower"],
+
+"2,8":["💎","crystal"],
+
+"6,8":["🗝️","key"],
+
+"7,3":["🌼","flower"],
+
+"6,6":["🐟","fish"],
+
+"3,5":["🪙","coin"],
+
+"5,5":["🌼","flower"]
+
+};
+
+function say(text){
+
+$("message").textContent=text;
+
+}
+
+function renderWorld(){
+
+const board=$("world");
+
+board.innerHTML="";
+
+for(let y=0;y<H;y++){
+
+for(let x=0;x<W;x++){
+
+const k=x+","+y;
+
+const tile=document.createElement("div");
+
+tile.className="tile";
+
+if(paths.has(k))tile.classList.add("path");
+
+else if(water.has(k))tile.classList.add("water");
+
+else if(trees.has(k))tile.classList.add("tree");
+
+if(things[k]&&!S.found.includes(k)){
+
+tile.textContent=things[k][0];
+
+}
+
+if(x===S.x&&y===S.y){
+
+tile.className="tile me";
+
+tile.textContent="🧑🏻‍🌾";
+
+}
+
+board.appendChild(tile);
+
+}
+
+}
+
+}
+
+function move(dir){
+
+const d={
+
+up:[0,-1],down:[0,1],
+
+left:[-1,0],right:[1,0]
+
+}[dir];
+
+const x=Math.max(0,Math.min(8,S.x+d[0]));
+
+const y=Math.max(0,Math.min(8,S.y+d[1]));
+
+const k=x+","+y;
+
+if(trees.has(k)||water.has(k)){
+
+say("Hier kommst du gerade nicht weiter. 🌿");
+
+return;
+
+}
+
+S.x=x;
+
+S.y=y;
+
+S.steps++;
+
+if(things[k]&&!S.found.includes(k)){
+
+S.found.push(k);
+
+const type=things[k][1];
+
+if(type==="flower"){
+
+S.flowers++;
+
+S.xp+=10;
+
+say("Eine Blüte gefunden! 🌼 +10 XP");
+
+}
+
+if(type==="coin"){
+
+S.coins+=5;
+
+S.xp+=3;
+
+say("Du hast 5 Münzen gefunden! 🪙");
+
+}
+
+if(type==="mushroom"){
+
+S.mushrooms++;
+
+S.xp+=5;
+
+say("Ein Waldpilz! 🍄 +5 XP");
+
+}
+
+if(type==="crystal"){
+
+S.crystals++;
+
+S.xp+=15;
+
+say("Ein funkelnder Kristall! 💎 +15 XP");
+
+}
+
+if(type==="fish"){
+
+S.fish++;
+
+S.xp+=8;
+
+say("Ein kleiner Fisch! 🐟 +8 XP");
+
+}
+
+if(type==="key"){
+
+S.keys++;
+
+S.xp+=10;
+
+say("Du hast einen geheimnisvollen Schlüssel gefunden! 🗝️");
+
+}
+
+if(type==="chest"){
+
+S.coins+=15;
+
+S.keys++;
+
+S.xp+=20;
+
+say("Schatztruhe entdeckt! +15 Münzen und ein Schlüssel! 🧰");
+
+}
+
+}else{
+
+say("Du erkundest Sunny Valley. Wohin geht es als Nächstes? 🌱");
+
+}
+
+while(S.xp>=S.level*50){
+
+S.xp-=S.level*50;
+
+S.level++;
+
+say("Levelaufstieg! Du bist jetzt Level "+S.level+"! ⭐");
+
+}
+
+save();
+
+render();
+
+}
+
+document.querySelectorAll("[data-dir]").forEach(b=>{
+
+b.addEventListener("click",()=>move(b.dataset.dir));
+
+});
+
+document.addEventListener("keydown",e=>{
+
+const dirs={
+
+ArrowUp:"up",ArrowDown:"down",
+
+ArrowLeft:"left",ArrowRight:"right"
+
+};
+
+if(dirs[e.key]&&$("game").classList.contains("active")){
+
+e.preventDefault();
+
+move(dirs[e.key]);
+
+}
+
+});
+
+const quests=[
+
+{id:"flowers",title:"Sammle 5 Blüten",goal:5,reward:10,
+
+get:()=>S.flowers,emoji:"🌼"},
+
+{id:"chest",title:"Finde die Schatztruhe",goal:1,reward:15,
+
+get:()=>S.found.includes("6,1")?1:0,emoji:"🧰"},
+
+{id:"fish",title:"Finde 2 Fische",goal:2,reward:10,
+
+get:()=>S.fish,emoji:"🐟"},
+
+{id:"walk",title:"Mach 12 Schritte",goal:12,reward:10,
+
+get:()=>S.steps,emoji:"👣"}
+
+];
+
+function renderQuests(){
+
+$("questList").innerHTML=quests.map(q=>{
+
+const done=q.get()>=q.goal;
+
+const claimed=S.claimed.includes(q.id);
+
+return `<div class="item">
+
+<strong>${q.emoji} ${q.title}</strong>
+
+<p>${Math.min(q.get(),q.goal)} / ${q.goal} · Belohnung: ${q.reward} 🪙</p>
+
+<button data-claim="${q.id}" ${!done||claimed?"disabled":""}>
+
+${claimed?"Erledigt ✓":done?"Belohnung abholen":"Weiter suchen"}
+
+</button>
+
+</div>`;
+
+}).join("");
+
+document.querySelectorAll("[data-claim]").forEach(b=>{
+
+b.onclick=()=>{
+
+const q=quests.find(q=>q.id===b.dataset.claim);
+
+if(q.get()<q.goal||S.claimed.includes(q.id))return;
+
+S.claimed.push(q.id);
+
+S.coins+=q.reward;
+
+S.xp+=10;
+
+while(S.xp>=S.level*50){
+
+S.xp-=S.level*50;
+
+S.level++;
+
+}
+
+save();
+
+say("Aufgabe geschafft! Du bekommst "+q.reward+" Münzen! 🎉");
+
+render();
+
+};
+
+});
+
+}
+
+function renderInventory(){
+
+$("inventory").innerHTML=`
+
+<div class="item">🌼 Blüten: <strong>${S.flowers}</strong></div>
+
+<div class="item">🪙 Münzen: <strong>${S.coins}</strong></div>
+
+<div class="item">🍄 Pilze: <strong>${S.mushrooms}</strong></div>
+
+<div class="item">💎 Kristalle: <strong>${S.crystals}</strong></div>
+
+<div class="item">🐟 Fische: <strong>${S.fish}</strong></div>
+
+<div class="item">🗝️ Schlüssel: <strong>${S.keys}</strong></div>`;
+
+const achievements=[
+
+["Blütenfreund","Sammle 5 Blüten",S.flowers>=5],
+
+["Schatzsucherin","Finde die Truhe",S.found.includes("6,1")],
+
+["Glitzerfund","Finde einen Kristall",S.crystals>0],
+
+["Aufsteigerin","Erreiche Level 2",S.level>=2]
+
+];
+
+$("achievements").innerHTML=achievements.map(a=>
+
+`<div class="item">${a[2]?"✅":"🔒"} <strong>${a[0]}</strong>
+
+<p>${a[1]}</p></div>`
+
+).join("");
+
+}
+
+function escapeHTML(s){
+
+return String(s).replace(/[&<>"']/g,c=>({
+
+"&":"&amp;","<":"&lt;",">":"&gt;",
+
+'"':"&quot;","'":"&#39;"
+
+}[c]));
+
+}
+
+function renderDiary(){
+
+$("entries").innerHTML=S.entries.slice().reverse().map((e,i)=>
+
+`<div class="item">
+
+<strong>${escapeHTML(e.title)}</strong>
+
+<p class="small">${e.date}</p>
+
+<p>${escapeHTML(e.text)}</p>
+
+<button data-delete="${S.entries.length-1-i}">Eintrag löschen</button>
+
+</div>`
+
+).join("")||"<p class='small'>Noch keine Erinnerungen. Schreib deinen ersten Eintrag! 🌱</p>";
+
+document.querySelectorAll("[data-delete]").forEach(b=>{
+
+b.onclick=()=>{
+
+S.entries.splice(Number(b.dataset.delete),1);
+
+save();
+
+renderDiary();
+
+};
+
+});
+
+}
+
+$("diaryForm").addEventListener("submit",e=>{
+
+e.preventDefault();
+
+S.entries.push({
+
+title:$("entryTitle").value.trim(),
+
+text:$("entryText").value.trim(),
+
+date:new Date().toLocaleDateString("de-DE")
+
+});
+
+S.xp+=5;
+
+while(S.xp>=S.level*50){
+
+S.xp-=S.level*50;
+
+S.level++;
+
+}
+
+save();
+
+e.target.reset();
+
+render();
+
+say("Deine Erinnerung wurde gespeichert! 📖");
+
+});
+
+$("photoInput").addEventListener("change",e=>{
+
+const files=Array.from(e.target.files).slice(0,8);
+
+files.forEach(file=>{
+
+if(!file.type.startsWith("image/"))return;
+
+const reader=new FileReader();
+
+reader.onload=()=>{
+
+S.photos.push(reader.result);
+
+save();
+
+renderPhotos();
+
+};
+
+reader.readAsDataURL(file);
+
+});
+
+});
+
+function renderPhotos(){
+
+$("photos").innerHTML=S.photos.map((src,i)=>
+
+`<div>
+
+<img src="${src}" alt="Dein Galeriebild">
+
+<button data-photo="${i}">Bild entfernen</button>
+
+</div>`
+
+).join("");
+
+document.querySelectorAll("[data-photo]").forEach(b=>{
+
+b.onclick=()=>{
+
+S.photos.splice(Number(b.dataset.photo),1);
+
+save();
+
+renderPhotos();
+
+};
+
+});
+
+}
+
+function render(){
+
+renderWorld();
+
+renderQuests();
+
+renderInventory();
+
+renderDiary();
+
+renderPhotos();
+
+$("flowers").textContent=S.flowers;
+
+$("coins").textContent=S.coins;
+
+$("level").textContent=S.level;
+
+$("xp").textContent=S.xp+" / "+(S.level*50);
+
+}
+
+document.querySelectorAll("[data-page]").forEach(b=>{
+
+b.addEventListener("click",()=>{
+
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+
+document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));
+
+$(b.dataset.page).classList.add("active");
+
+b.classList.add("active");
+
+});
+
+});
+
+$("reset").addEventListener("click",()=>{
+
+if(confirm("Möchtest du wirklich von vorne anfangen?")){
+
+S=fresh();
+
+save();
+
+render();
+
+say("Dein neues Abenteuer beginnt! 🌼");
+
+}
+
+});
+
+render();
+
+</script>
+
+</body>
+
+</html>
